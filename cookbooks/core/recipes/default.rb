@@ -186,18 +186,10 @@ execute "install zsh theme" do
   user node[:user]
 end
 
-git "n" do
-  repository "git://github.com/zhm/n.git"
-  reference 'master'
-  destination "#{install_prefix}/src/n"
-  action :checkout
-  user "root"
-end
-
-execute "install n" do
-  cwd "#{install_prefix}/src/n"
+execute "install node" do
   command <<-EOS
-    make install && n 0.8.9
+    curl --silent --location https://deb.nodesource.com/setup_0.12 | bash - &&
+    apt-get install --yes nodejs
   EOS
   action :run
   user 'root'
