@@ -172,18 +172,6 @@ git "oh-my-zsh" do
   user node[:user]
 end
 
-execute "install .zshrc" do
-  command "curl -L -o /home/#{node[:user]}/.zshrc https://raw.github.com/gist/789ba55f7ab0bf895a1c/5dc934f2737f75b306637c35258b984fc0127005/.zshrc"
-  action :run
-  user node[:user]
-end
-
-execute "install zsh theme" do
-  command "curl -L -o /home/#{node[:user]}/.oh-my-zsh/themes/hackbox.zsh-theme https://raw.github.com/gist/1e701eb696d8804fa19c/c729347309a79f6820f4ad6feb7b517242755510/hackbox.zsh-theme"
-  action :run
-  user node[:user]
-end
-
 execute "install node" do
   command <<-EOS
     curl --silent --location https://deb.nodesource.com/setup_0.12 | bash - &&
