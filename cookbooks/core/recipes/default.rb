@@ -34,9 +34,10 @@ end
   python-pip
   python-gdal
   python-mapnik
-  postgresql-9.1
-  postgresql-server-dev-9.1
-  postgresql-plpython-9.1
+  postgresql
+  postgresql-contrib
+  postgis
+  postgresql-9.3-postgis-2.1
   libjson0-dev
   redis-server
   libxslt-dev
@@ -64,32 +65,22 @@ execute "apt-get update" do
   user "root"
 end
 
-execute "install PostGIS 2.x" do
+execute "setup Postgres & PostGIS" do
   command <<-EOS
-    if [ ! -d /usr/local/src/postgis-2.0.1 ]
+    if [ ! sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='gisuser'" | grep -q 1 ]
     then
-      cd /usr/local/src &&
-      wget http://postgis.org/download/postgis-2.0.1.tar.gz &&
-      tar xfvz postgis-2.0.1.tar.gz &&
-      cd postgis-2.0.1 &&
-      ./configure &&
-      make &&
-      make install &&
-      ldconfig &&
-      make comments-install &&
+      sudo -u postgres createuser gisuser &&
+      sudo -u postgres createdb --encoding=UTF8 --owner=gisuser gis &&
+      sudo -u postgres psql -d gis -c 'CREATE EXTENSION postgis; CREATE EXTENSION hstore;' &&
+      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis.sql &&
+      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/spatial_ref_sys.sql &&
+      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis_comments.sql &&
+      sudo -u postgres psql -d gis -c "GRANT SELECT ON spatial_ref_sys TO PUBLIC;" &&
+      sudo -u postgres psql -d gis -c "GRANT ALL ON geometry_columns TO gisuser;" &&
       ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/shp2pgsql &&
       ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/pgsql2shp &&
       ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/raster2pgsql &&
-      /etc/init.d/postgresql restart &&
-      echo "CREATE ROLE vagrant LOGIN;"                  | psql -U postgres &&
-      echo "CREATE DATABASE vagrant;"                    | psql -U postgres &&
-      echo "ALTER USER vagrant SUPERUSER;"               | psql -U postgres &&
-      echo "ALTER USER vagrant WITH PASSWORD 'vagrant';" | psql -U postgres &&
-      echo "CREATE DATABASE template_postgis;"           | psql -U postgres &&
-      echo "CREATE EXTENSION postgis;"                   | psql -U postgres -d template_postgis &&
-      echo "CREATE EXTENSION postgis_topology;"          | psql -U postgres -d template_postgis &&
-      echo "GRANT ALL ON geometry_columns TO PUBLIC;"    | psql -U postgres -d template_postgis &&
-      echo "GRANT ALL ON spatial_ref_sys TO PUBLIC;"     | psql -U postgres -d template_postgis
+      sudo /etc/init.d/postgresql restart
     fi
   EOS
   action :run
