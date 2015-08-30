@@ -7,7 +7,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box = "precise"
 
     config.vm.provider :virtualbox do |vb|
-        vb.customize ["modifyvm", :id, "--memory", "1024"]
+        vb.customize ["modifyvm", :id, "--memory", "2048"]
     end
 
     config.vm.network :forwarded_port, id: 'ssh', guest: 22, host: 2222
