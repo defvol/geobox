@@ -116,43 +116,25 @@ directory "#{install_prefix}/src" do
   action :create
 end
 
-git "ry" do
-  repository "git://github.com/zhm/ry.git"
-  reference 'master'
-  destination "#{install_prefix}/src/ry"
-  action :checkout
-  user "root"
-end
-
-ENV['RY_PREFIX'] = install_prefix
-
-execute "install ry" do
-  cwd "#{install_prefix}/src/ry"
+execute "ruby on rbenv" do
   command <<-EOS
-    [ -x #{install_prefix}/bin/ry ] || PREFIX=#{install_prefix} make install
+    cd &&
+    rm -rf .rbenv
+    git clone git://github.com/sstephenson/rbenv.git .rbenv &&
+    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc &&
+    echo 'eval "$(rbenv init -)"' >> ~/.bashrc &&
+    exec $SHELL &&
+    git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build &&
+    echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc &&
+    exec $SHELL &&
+    git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash &&
+    rbenv install 2.2.3 &&
+    rbenv install 1.9.3 &&
+    rbenv global 1.9.3 &&
+    echo "gem: --no-ri --no-rdoc" > ~/.gemrc &&
+    gem install bundler
   EOS
   action :run
-  user "root"
-end
-
-execute "install ruby 1.9.3" do
-  command <<-EOS
-    [ -x #{install_prefix}/lib/ry/current/bin/ruby ] ||
-    #{install_prefix}/bin/ry install https://github.com/ruby/ruby/tarball/v1_9_3_195 1.9.3 --enable-shared=yes
-  EOS
-  action :run
-  user "root"
-end
-
-execute "setup ruby" do
-  command <<-EOS
-    export RY_PREFIX=#{install_prefix} &&
-    export PATH=$RY_PREFIX/lib/ry/current/bin:$PATH &&
-    #{install_prefix}/lib/ry/current/bin/gem update --system &&
-    #{install_prefix}/lib/ry/current/bin/gem install bundler
-  EOS
-  action :run
-  user "root"
 end
 
 git "oh-my-zsh" do
