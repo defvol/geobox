@@ -1,4 +1,4 @@
-%w[wget curl ack python-software-properties autoconf bison flex libyaml-dev libtool make vim].each do |pkg|
+%w[wget curl ack-grep python-software-properties autoconf bison flex libyaml-dev libtool make vim].each do |pkg|
   package pkg do
     action :install
   end
