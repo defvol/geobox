@@ -5,22 +5,22 @@ started with some standard tools without worrying about messing up your local ma
 
 # Included in VM
 
-* Ubuntu 12.04 Precise Pangolin
-* GEOS 3.3.3
-* Proj 4.7
+* Ubuntu 14.04 Trusty Tahr
+* GEOS 3.4.2
+* Proj 4.8
 * SpatiaLite 3.1
-* GDAL 1.9.1
-* Mapnik 2.0.1
-* PostgreSQL 9.1
-* PostGIS 2.0.1
+* GDAL 1.11.2
+* Mapnik 2.2.0
+* PostgreSQL 9.3
+* PostGIS 2.1.4
 * Redis 2.2.x
 * MongoDB 2.x
-* NodeJS stable (currently 0.8.x)
+* NodeJS stable (currently 0.12.x)
 * Ruby 1.9.3 + Bundler
 * CartoDB (master)
 * osm2pgsql
 * osmosis
-* Imposm 2.4
+* Imposm 2.6
 * nginx
 * zsh
 
