@@ -145,13 +145,14 @@ git "oh-my-zsh" do
   user node[:user]
 end
 
-execute "install node" do
-  command <<-EOS
-    curl --silent --location https://deb.nodesource.com/setup_0.12 | bash - &&
-    apt-get install --yes nodejs
-  EOS
-  action :run
-  user 'root'
+# install nvm
+include_recipe 'nvm'
+
+# install node.js
+nvm_install 'v0.12'  do
+  from_source false
+  alias_as_default true
+  action :create
 end
 
 execute "install standard node modules" do

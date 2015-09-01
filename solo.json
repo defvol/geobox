@@ -4,6 +4,7 @@
     "recipe[zsh]",
     "recipe[apt]",
     "recipe[core]",
+    "recipe[nvm]",
     "recipe[ohai]",
     "recipe[nginx]",
     "recipe[mongodb]"
