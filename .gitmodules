@@ -19,3 +19,33 @@
 [submodule "cookbooks/ohai"]
 	path = cookbooks/ohai
 	url = https://github.com/opscode-cookbooks/ohai.git
+[submodule "cookbooks/dmg"]
+	path = cookbooks/dmg
+	url = https://github.com/opscode-cookbooks/dmg
+[submodule "cookbooks/windows"]
+	path = cookbooks/windows
+	url = https://github.com/opscode-cookbooks/windows
+[submodule "cookbooks/chef_handler"]
+	path = cookbooks/chef_handler
+	url = https://github.com/opscode-cookbooks/chef_handler
+[submodule "cookbooks/yum-epel"]
+	path = cookbooks/yum-epel
+	url = https://github.com/chef-cookbooks/yum-epel
+[submodule "cookbooks/yum"]
+	path = cookbooks/yum
+	url = https://github.com/chef-cookbooks/yum
+[submodule "cookbooks/bluepill"]
+	path = cookbooks/bluepill
+	url = https://github.com/opscode-cookbooks/bluepill
+[submodule "cookbooks/rsyslog"]
+	path = cookbooks/rsyslog
+	url = https://github.com/opscode-cookbooks/rsyslog
+[submodule "cookbooks/runit"]
+	path = cookbooks/runit
+	url = https://github.com/hw-cookbooks/runit
+[submodule "cookbooks/packagecloud-cookbook"]
+	path = cookbooks/packagecloud-cookbook
+	url = https://github.com/computology/packagecloud-cookbook
+[submodule "cookbooks/python"]
+	path = cookbooks/python
+	url = https://github.com/poise/python

@@ -4,10 +4,12 @@ require 'json'
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-    config.vm.box = "precise"
+    config.vm.box = "ubuntu/trusty64"
+
+    config.omnibus.chef_version = "12.3.0"
 
     config.vm.provider :virtualbox do |vb|
-        vb.customize ["modifyvm", :id, "--memory", "1024"]
+        vb.customize ["modifyvm", :id, "--memory", "2048"]
     end
 
     config.vm.network :forwarded_port, id: 'ssh', guest: 22, host: 2222

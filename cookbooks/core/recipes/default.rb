@@ -1,4 +1,4 @@
-%w[wget curl ack python-software-properties autoconf bison flex libyaml-dev libtool make vim].each do |pkg|
+%w[wget curl ack-grep python-software-properties autoconf bison flex libyaml-dev libtool make vim].each do |pkg|
   package pkg do
     action :install
   end
@@ -34,9 +34,10 @@ end
   python-pip
   python-gdal
   python-mapnik
-  postgresql-9.1
-  postgresql-server-dev-9.1
-  postgresql-plpython-9.1
+  postgresql
+  postgresql-contrib
+  postgis
+  postgresql-9.3-postgis-2.1
   libjson0-dev
   redis-server
   libxslt-dev
@@ -64,32 +65,22 @@ execute "apt-get update" do
   user "root"
 end
 
-execute "install PostGIS 2.x" do
+execute "setup Postgres & PostGIS" do
   command <<-EOS
-    if [ ! -d /usr/local/src/postgis-2.0.1 ]
+    if [ ! sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='gisuser'" | grep -q 1 ]
     then
-      cd /usr/local/src &&
-      wget http://postgis.org/download/postgis-2.0.1.tar.gz &&
-      tar xfvz postgis-2.0.1.tar.gz &&
-      cd postgis-2.0.1 &&
-      ./configure &&
-      make &&
-      make install &&
-      ldconfig &&
-      make comments-install &&
+      sudo -u postgres createuser gisuser &&
+      sudo -u postgres createdb --encoding=UTF8 --owner=gisuser gis &&
+      sudo -u postgres psql -d gis -c 'CREATE EXTENSION postgis; CREATE EXTENSION hstore;' &&
+      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis.sql &&
+      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/spatial_ref_sys.sql &&
+      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis_comments.sql &&
+      sudo -u postgres psql -d gis -c "GRANT SELECT ON spatial_ref_sys TO PUBLIC;" &&
+      sudo -u postgres psql -d gis -c "GRANT ALL ON geometry_columns TO gisuser;" &&
       ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/shp2pgsql &&
       ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/pgsql2shp &&
       ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/raster2pgsql &&
-      /etc/init.d/postgresql restart &&
-      echo "CREATE ROLE vagrant LOGIN;"                  | psql -U postgres &&
-      echo "CREATE DATABASE vagrant;"                    | psql -U postgres &&
-      echo "ALTER USER vagrant SUPERUSER;"               | psql -U postgres &&
-      echo "ALTER USER vagrant WITH PASSWORD 'vagrant';" | psql -U postgres &&
-      echo "CREATE DATABASE template_postgis;"           | psql -U postgres &&
-      echo "CREATE EXTENSION postgis;"                   | psql -U postgres -d template_postgis &&
-      echo "CREATE EXTENSION postgis_topology;"          | psql -U postgres -d template_postgis &&
-      echo "GRANT ALL ON geometry_columns TO PUBLIC;"    | psql -U postgres -d template_postgis &&
-      echo "GRANT ALL ON spatial_ref_sys TO PUBLIC;"     | psql -U postgres -d template_postgis
+      sudo /etc/init.d/postgresql restart
     fi
   EOS
   action :run
@@ -125,43 +116,25 @@ directory "#{install_prefix}/src" do
   action :create
 end
 
-git "ry" do
-  repository "git://github.com/zhm/ry.git"
-  reference 'master'
-  destination "#{install_prefix}/src/ry"
-  action :checkout
-  user "root"
-end
-
-ENV['RY_PREFIX'] = install_prefix
-
-execute "install ry" do
-  cwd "#{install_prefix}/src/ry"
+execute "ruby on rbenv" do
   command <<-EOS
-    [ -x #{install_prefix}/bin/ry ] || PREFIX=#{install_prefix} make install
+    cd &&
+    rm -rf .rbenv
+    git clone git://github.com/sstephenson/rbenv.git .rbenv &&
+    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc &&
+    echo 'eval "$(rbenv init -)"' >> ~/.bashrc &&
+    exec $SHELL &&
+    git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build &&
+    echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc &&
+    exec $SHELL &&
+    git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash &&
+    rbenv install 2.2.3 &&
+    rbenv install 1.9.3 &&
+    rbenv global 1.9.3 &&
+    echo "gem: --no-ri --no-rdoc" > ~/.gemrc &&
+    gem install bundler
   EOS
   action :run
-  user "root"
-end
-
-execute "install ruby 1.9.3" do
-  command <<-EOS
-    [ -x #{install_prefix}/lib/ry/current/bin/ruby ] ||
-    #{install_prefix}/bin/ry install https://github.com/ruby/ruby/tarball/v1_9_3_195 1.9.3 --enable-shared=yes
-  EOS
-  action :run
-  user "root"
-end
-
-execute "setup ruby" do
-  command <<-EOS
-    export RY_PREFIX=#{install_prefix} &&
-    export PATH=$RY_PREFIX/lib/ry/current/bin:$PATH &&
-    #{install_prefix}/lib/ry/current/bin/gem update --system &&
-    #{install_prefix}/lib/ry/current/bin/gem install bundler
-  EOS
-  action :run
-  user "root"
 end
 
 git "oh-my-zsh" do
@@ -196,6 +169,15 @@ execute "install pip" do
   user 'root'
 end
 
+execute "install imposm" do
+  command <<-EOS
+    pip install imposm.parser &&
+    pip install Shapely &&
+    pip install imposm
+  EOS
+  user 'root'
+end
+
 execute "install python dependencies for CartoDB" do
   command <<-EOS
     pip install 'chardet==1.0.1' &&
@@ -208,7 +190,6 @@ execute "install python dependencies for CartoDB" do
   action :run
   user 'root'
 end
-
 
 git "CartoDB-SQL-API" do
   repository "git://github.com/Vizzuality/CartoDB-SQL-API.git"
@@ -249,7 +230,6 @@ execute "start Windshaft-cartodb" do
   EOS
   user 'root'
 end
-
 
 git "CartoDB" do
   repository "git://github.com/Vizzuality/cartodb.git"
@@ -297,15 +277,6 @@ execute "start cartodb" do
     export PATH=$RY_PREFIX/lib/ry/current/bin:$PATH
     nohup bundle exec rails server >> #{install_prefix}/src/cartodb/log/development.log 2>&1 &
     echo $! > #{install_prefix}/src/cartodb/pids/cartodb.pid
-  EOS
-  user 'root'
-end
-
-execute "install imposm" do
-  command <<-EOS
-    pip install imposm.parser &&
-    pip install Shapely &&
-    pip install imposm
   EOS
   user 'root'
 end
