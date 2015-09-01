@@ -67,24 +67,22 @@ end
 
 execute "setup Postgres & PostGIS" do
   command <<-EOS
-    if [ ! sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='gisuser'" | grep -q 1 ]
-    then
-      sudo -u postgres createuser gisuser &&
-      sudo -u postgres createdb --encoding=UTF8 --owner=gisuser gis &&
-      sudo -u postgres psql -d gis -c 'CREATE EXTENSION postgis; CREATE EXTENSION hstore;' &&
-      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis.sql &&
-      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/spatial_ref_sys.sql &&
-      sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis_comments.sql &&
-      sudo -u postgres psql -d gis -c "GRANT SELECT ON spatial_ref_sys TO PUBLIC;" &&
-      sudo -u postgres psql -d gis -c "GRANT ALL ON geometry_columns TO gisuser;" &&
-      ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/shp2pgsql &&
-      ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/pgsql2shp &&
-      ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/raster2pgsql &&
-      sudo /etc/init.d/postgresql restart
-    fi
+    sudo -u postgres createuser gisuser &&
+    sudo -u postgres createdb --encoding=UTF8 --owner=gisuser gis &&
+    sudo -u postgres psql -d gis -c 'CREATE EXTENSION postgis; CREATE EXTENSION hstore;' &&
+    sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis.sql &&
+    sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/spatial_ref_sys.sql &&
+    sudo -u postgres psql -d gis -f /usr/share/postgresql/9.3/contrib/postgis-2.1/postgis_comments.sql &&
+    sudo -u postgres psql -d gis -c "GRANT SELECT ON spatial_ref_sys TO PUBLIC;" &&
+    sudo -u postgres psql -d gis -c "GRANT ALL ON geometry_columns TO gisuser;" &&
+    ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/shp2pgsql &&
+    ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/pgsql2shp &&
+    ln -sf /usr/share/postgresql-common/pg_wrapper /usr/local/bin/raster2pgsql &&
+    sudo /etc/init.d/postgresql restart
   EOS
   action :run
   user 'root'
+  not_if do ::File.exists?('/usr/local/bin/raster2pgsql') end
 end
 
 ENV['PATH'] = "/home/#{node[:user]}/local:#{ENV['PATH']}"
