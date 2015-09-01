@@ -169,6 +169,15 @@ execute "install pip" do
   user 'root'
 end
 
+execute "install imposm" do
+  command <<-EOS
+    pip install imposm.parser &&
+    pip install Shapely &&
+    pip install imposm
+  EOS
+  user 'root'
+end
+
 execute "install python dependencies for CartoDB" do
   command <<-EOS
     pip install 'chardet==1.0.1' &&
@@ -181,7 +190,6 @@ execute "install python dependencies for CartoDB" do
   action :run
   user 'root'
 end
-
 
 git "CartoDB-SQL-API" do
   repository "git://github.com/Vizzuality/CartoDB-SQL-API.git"
@@ -222,7 +230,6 @@ execute "start Windshaft-cartodb" do
   EOS
   user 'root'
 end
-
 
 git "CartoDB" do
   repository "git://github.com/Vizzuality/cartodb.git"
@@ -270,15 +277,6 @@ execute "start cartodb" do
     export PATH=$RY_PREFIX/lib/ry/current/bin:$PATH
     nohup bundle exec rails server >> #{install_prefix}/src/cartodb/log/development.log 2>&1 &
     echo $! > #{install_prefix}/src/cartodb/pids/cartodb.pid
-  EOS
-  user 'root'
-end
-
-execute "install imposm" do
-  command <<-EOS
-    pip install imposm.parser &&
-    pip install Shapely &&
-    pip install imposm
   EOS
   user 'root'
 end
