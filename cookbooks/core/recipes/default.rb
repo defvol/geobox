@@ -155,7 +155,7 @@ execute "install node" do
 end
 
 execute "install standard node modules" do
-  modules = %w(coffee-script underscore node-gyp)
+  modules = %w(coffee-script underscore node-gyp carto)
   command modules.map {|m| "npm install -g #{m}" }.join(' && ')
   action :run
   user 'root'
