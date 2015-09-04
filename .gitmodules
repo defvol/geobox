@@ -49,3 +49,6 @@
 [submodule "cookbooks/python"]
 	path = cookbooks/python
 	url = https://github.com/poise/python
+[submodule "cookbooks/nvm"]
+	path = cookbooks/nvm
+	url = https://github.com/phutchins/nvm
